@@ -4,20 +4,20 @@ import jwt from "jsonwebtoken"
 
 export const register = (req,res)=>{
     //check user exist
-    const q = "SELECT * FROM users WHERE email = ? OR username = ?"
-
-    db.query(q, [req.body.email, req.body.username], (err,data)=>{
+    const q = "SELECT * FROM users WHERE email = ? OR name = ?"
+    
+    db.query(q, [req.body.email, req.body.name], (err,data)=>{
         if(err) return res.json(err)
         if(data.length) return res.status(409).json("User already exists");
-    
+        
         //hash pass, then create new user
         const salt = bcrypt.genSaltSync(10);
         const hash = bcrypt.hashSync(req.body.password, salt)
-
+        
         //insert query
-        const q = "INSERT INTO users(`username`,`email`,`password`) VALUES (?)"
+        const q = "INSERT INTO users(`name`,`email`,`password`) VALUES (?)"
         const values = [
-            req.body.username,
+            req.body.name,
             req.body.email,
             hash //as hashed password
         ]
@@ -31,9 +31,9 @@ export const register = (req,res)=>{
 }
 
 export const login = (req,res)=>{
-    const q = "SELECT * FROM users WHERE username = ?"
+    const q = "SELECT * FROM users WHERE name = ?"
     const values = [
-        req.body.username,
+        req.body.name,
     ]
     db.query(q, [values], (err,data)=>{
         if(err) return res.json(err)
@@ -41,7 +41,7 @@ export const login = (req,res)=>{
     
         //check password
         const isPasswordCorrect = bcrypt.compareSync(req.body.password, data[0].password)
-        if(!isPasswordCorrect) return res.status(400).json("Incorrect Username or Password");
+        if(!isPasswordCorrect) return res.status(400).json("Incorrect name or Password");
         
         //jwt, store in cookie
         const token = jwt.sign({ id: data[0].id }, "jwtKey");
