@@ -3,6 +3,7 @@ import cors from "cors"
 import bodyParser from "body-parser"
 import cookieParser from "cookie-parser"
 import multer from "multer"
+import createSchema from "./routes/schema.js"
 import authRoutes from "./routes/auth.js"
 
 const app = express();
@@ -19,6 +20,7 @@ app.use( bodyParser.json() );
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 
+app.use("/api/db", createSchema)
 app.use("/api/auth", authRoutes)
 
 const port = 5000;

@@ -31,9 +31,9 @@ export const register = (req,res)=>{
 }
 
 export const login = (req,res)=>{
-    const q = "SELECT * FROM users WHERE name = ?"
+    const q = "SELECT * FROM users WHERE email = ?"
     const values = [
-        req.body.name,
+        req.body.email,
     ]
     db.query(q, [values], (err,data)=>{
         if(err) return res.json(err)
@@ -41,7 +41,7 @@ export const login = (req,res)=>{
     
         //check password
         const isPasswordCorrect = bcrypt.compareSync(req.body.password, data[0].password)
-        if(!isPasswordCorrect) return res.status(400).json("Incorrect name or Password");
+        if(!isPasswordCorrect) return res.status(400).json("Incorrect email or password");
         
         //jwt, store in cookie
         const token = jwt.sign({ id: data[0].id }, "jwtKey");
