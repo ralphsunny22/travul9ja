@@ -49,17 +49,36 @@ export const createSchema = (req,res)=>{
                     password VARCHAR(255) NOT NULL,
                     profile_picture VARCHAR(255) NULL,
                     status VARCHAR(45) NOT NULL DEFAULT 'active',
-                    created_at VARCHAR(255) NULL,
-                    updated_at VARCHAR(255) NULL,
+                    created_at DATETIME NULL,
+                    updated_at DATETIME NULL,
                     UNIQUE INDEX id_UNIQUE (id ASC),
                     PRIMARY KEY (id),
                     UNIQUE INDEX email_UNIQUE (email ASC)
                 );
-        
-                CREATE TABLE posts (
-                  id INT PRIMARY KEY,
-                  title VARCHAR(100),
-                  content TEXT
+                CREATE TABLE transport_modes (
+                    id INT NOT NULL AUTO_INCREMENT,
+                    type VARCHAR(255) NOT NULL,
+                    name VARCHAR(255) NOT NULL,
+                    image VARCHAR(255) NULL,
+                    description LONGTEXT NULL,
+                    color VARCHAR(255) NULL,
+                    features LONGTEXT NULL,
+                    category_id INT NULL,
+                    owner INT NULL,
+                    current_driver INT NULL,
+                    date_manufactured DATE NULL,
+                    quality VARCHAR(255) NULL,
+                    seat_capacity INT NULL,
+                    company_number VARCHAR(255) NULL,
+                    plate_number VARCHAR(255) NULL,
+                    other_features LONGTEXT NULL,
+                    status VARCHAR(45) NOT NULL DEFAULT 'active',
+                    created_at DATETIME NULL,
+                    updated_at DATETIME NULL,
+                    UNIQUE INDEX id_UNIQUE (id ASC),
+                    PRIMARY KEY (id),
+                    UNIQUE INDEX company_number_UNIQUE (company_number ASC),
+                    UNIQUE INDEX plate_number_UNIQUE (plate_number ASC)
                 );
               `;
               connection.query(createTablesQuery, (error, results) => {
