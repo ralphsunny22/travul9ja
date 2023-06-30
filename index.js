@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser"
 import multer from "multer"
 import createSchema from "./routes/schema.js"
 import authRoutes from "./routes/auth.js"
+import transportModeRoutes from "./routes/transportModes.js"
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use(cors());
 
 app.use("/api/db", createSchema)
 app.use("/api/auth", authRoutes)
+app.use("/api/transport-mode", transportModeRoutes)
 
 const port = 5000;
 app.listen(port, ()=>{
