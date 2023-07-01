@@ -77,9 +77,7 @@ export const createSchema = (req,res)=>{
                     created_at DATETIME NULL,
                     updated_at DATETIME NULL,
                     UNIQUE INDEX id_UNIQUE (id ASC),
-                    PRIMARY KEY (id),
-                    UNIQUE INDEX company_number_UNIQUE (company_number ASC),
-                    UNIQUE INDEX plate_number_UNIQUE (plate_number ASC)
+                    PRIMARY KEY (id)
                 );
               `;
               connection.query(createTablesQuery, (error, results) => {

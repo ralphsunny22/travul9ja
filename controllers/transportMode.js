@@ -21,16 +21,7 @@ export const getAllTransportModes = (req,res)=>{
     
 };
 
-//unused
-export const getSingleTransportMode2 = (req,res)=>{
-    const q = "SELECT p.id, `username`, `title`, `desc`, p.img, u.img AS userImg, `cat`, `date` FROM users u JOIN transport_modes p ON u.id=p.uid WHERE p.id = ?";
-
-    db.query(q, [req.params.id], (err,data)=>{
-        if(err) return res.status(500).json(err)
-        return res.status(200).json(data[0]);
-    })
-};
-
+//single object
 export const getSingleTransportMode = async (req, res) => {
     try {
       const id = req.params.id;
@@ -40,49 +31,23 @@ export const getSingleTransportMode = async (req, res) => {
     } catch (error) {
       return res.status(500).json(error.message);
     }
-  };
+};
   
-//unused
-export const addTransport = (req,res)=>{
-    const token = req.header('Authorization').replace('Bearer ', '');
-    if(!token) return res.status(500).json("Unauthorised Process")
-
-    jwt.verify(token, "jwtKey", (err, userInfo)=>{
-        if(err) return res.status(403).json("Invalid Token")
-
-        //insert query
-        const q = "INSERT INTO transport_modes(`type`,`name`,`image`,`description`,`color`,`features`,`category_id`,`owner`,`current_driver`,`date_manufactured`,`quality`,`seat_capacity`,`company_number`,`plate_number`,`other_features`,`status`,`created_at`,`updated_at`) VALUES (?)"
-        const values = [
-            req.body.type,
-            req.body.name,
-            req.body.image,
-            req.body.description,
-            req.body.color,
-            req.body.features,
-            req.body.category_id,
-            req.body.owner,
-            req.body.current_driver,
-            req.body.date_manufactured,
-            req.body.quality,
-            req.body.seat_capacity,
-            req.body.company_number,
-            req.body.plate_number,
-            req.body.other_features,
-            req.body.status,
-            req.body.created_at,
-            req.body.updated_at, 
-        ]
-        db.query(q, [values], (err,data)=>{
-            if(err) return res.json(err)
-            return res.status(200).json("Transport Mode Created Successfuly")
-        })
-    })
-}
-
-export const addTransportMode = async (req,res)=>{
+//add new
+export const addTransportMode = async (req,res, next)=>{
     
   try {
     const transportMode = new TransportMode();
+    const company_number = req.body.company_number ? req.body.company_number : '' ;
+    const plate_number = req.body.plate_number ? req.body.plate_number : '' ;
+
+    //check duplicate
+    const affectedColumns = await transportMode.isUnique(company_number, plate_number); //grab affectedColumns frm instantiated class object
+    //remove duplicate columns
+    const unique = arr => [...new Set(arr)];
+    const unique_affectedColumns = unique(affectedColumns);
+    if(unique_affectedColumns.length > 0) return res.status(400).json({'success':false, 'Duplicate entry found in columns':unique_affectedColumns});
+    
     transportMode.type = req.body.type;
     transportMode.name = req.body.name;
     transportMode.image = req.body.image;
@@ -99,6 +64,7 @@ export const addTransportMode = async (req,res)=>{
     transportMode.other_features = req.body.other_features;
     transportMode.availability = 'available';
     transportMode.status = 'active';
+
     await transportMode.save();
     return res.status(200).json("Transport Mode Created Successfuly")  
   } catch (error) {
@@ -110,52 +76,68 @@ export const addTransportMode = async (req,res)=>{
    
 }
 
+//update
+export const updateTransportMode = async (req,res)=>{
+    
+    try {
+
+        //get id param       
+        const id = req.params.id;
+        //grab object from database
+        const transportMode = await TransportMode.findByIdOrFail(id);
+
+        const company_number = req.body.company_number ? req.body.company_number : '' ;
+        const plate_number = req.body.plate_number ? req.body.plate_number : '' ;
+
+        //if oldValue not equal newValue, check unique records, before new records can be allowed
+        if (transportMode.company_number !== company_number || transportMode.plate_number !== plate_number) {
+            //check duplicate
+            const affectedColumns = await transportMode.isUnique(company_number, plate_number); //grab affectedColumns frm instantiated class object
+            //remove duplicate columns
+            const unique = arr => [...new Set(arr)];
+            const unique_affectedColumns = unique(affectedColumns);
+            if(unique_affectedColumns.length > 0) return res.status(400).json({'success':false, 'Duplicate entry found in columns':unique_affectedColumns});
+        }
+        
+        transportMode.type = req.body.type;
+        transportMode.name = req.body.name;
+        transportMode.image = req.body.image;
+        transportMode.description = req.body.description;
+        transportMode.color = req.body.color;
+        transportMode.category_id = req.body.category_id;
+        transportMode.owner = req.body.owner;
+        transportMode.current_driver = req.body.current_driver;
+        transportMode.date_manufactured = req.body.date_manufactured;
+        transportMode.quality = req.body.quality;
+        transportMode.seat_capacity = req.body.seat_capacity;
+        transportMode.company_number = req.body.company_number;
+        transportMode.plate_number = req.body.plate_number;
+        transportMode.other_features = req.body.other_features;
+        transportMode.availability = req.body.availability === 'available' ? 'available' : 'unavailable';
+        transportMode.status = req.body.status === 'active' ? 'active' : 'inactive';
+        transportMode.id = id;
+        //return res.status(200).json(transportMode) 
+        await transportMode.update();
+        return res.status(200).json("Transport Mode Updated Successfuly")  
+      } catch (error) {
+        return res.status(500).json(error.message)
+      }
+
+}
+
 export const deleteTransportMode = async (req,res)=>{
     
-    try {            
+    try {     
+        //get id param       
         const id = req.params.id;
+        //grab object from database
         const transportMode = await TransportMode.findByIdOrFail(id);
+
+        //delete object
         await transportMode.delete();
         return res.status(200).json({'success':true, 'message':'Transport mode removed successfully'});
     } catch (error) {
         return res.status(500).json({'success':false, 'message':error.message})
     }
 
-    jwt.verify(token, "jwtKey", (err, userInfo)=>{
-        if(err) return res.status(403).json("Invalid Token")
-        
-        const transportModeId = req.params.id
-
-        const q = "DELETE FROM transport_modes WHERE `id` = ? AND `uid` = ?"
-        
-        db.query(q, [transportModeId, userInfo.id], (err,data)=>{
-            if(err) return res.status(403).json("You cannot perform this action")
-    
-            return res.status(200).json("TransportMode Deleted Successfully");
-        })
-    })
-
-}
-
-export const updateTransportMode = (req,res)=>{
-    const token = req.header('Authorization').replace('Bearer ', '');
-    if(!token) return res.status(500).json("Unauthorised Process")
-
-    jwt.verify(token, "jwtKey", (err, userInfo)=>{
-        if(err) return res.status(403).json("Invalid Token")
-
-        const transportModeId = req.params.id
-        //insert query
-        const q = "UPDATE transport_modes SET `title`=?,`desc`=?,`img`=?,`cat`=? WHERE `id` = ? AND `uid` = ?"
-        const values = [
-            req.body.title,
-            req.body.desc,
-            req.body.img,
-            req.body.cat, 
-        ]
-        db.query(q, [...values, transportModeId, userInfo.id], (err,data)=>{
-            if(err) return res.json(err)
-            return res.status(200).json("TransportMode Updated Successfuly")
-        })
-    })
 }

@@ -6,8 +6,8 @@ const router = express.Router()
 
 router.get("/", getAllTransportModes)
 router.get("/:id", getSingleTransportMode)
-router.post("/", addTransportMode)
+router.post("/", verifyAdmin, addTransportMode)
 router.delete("/:id", verifyAdmin, deleteTransportMode)
-router.put("/:id", updateTransportMode)
+router.put("/:id", verifyAdmin, updateTransportMode)
 
 export default router

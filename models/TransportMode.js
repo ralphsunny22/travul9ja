@@ -1,93 +1,5 @@
 import { db } from "../db.js";
 
-class TransportMode2 {
-    constructor() {
-      this.type = '';
-      this.name = '';
-      this.image = '';
-      this.description = '';
-      this.color = '';
-      this.features = '';
-      this.category_id = '';
-      this.owner = '';
-      this.current_driver = '';
-      this.date_manufactured = '';
-      this.quality = '';
-      this.seat_capacity = '';
-      this.company_number = '';
-      this.plate_number = '';
-      this.other_features = '';
-      this.availability = '';
-      this.status = '';
-      this.created_at = '';
-      this.updated_at = '';
-    }
-    
-    //save new
-    save() {
-      const q = `
-        INSERT INTO transport_modes(
-          type,
-          name,
-          image,
-          description,
-          color,
-          category_id,
-          owner,
-          current_driver,
-          date_manufactured,
-          quality,
-          seat_capacity,
-          company_number,
-          plate_number,
-          other_features,
-          availability,
-          status,
-          created_at,
-          updated_at
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
-      const now = new Date();
-      const createdAt = now.toISOString().slice(0, 19).replace('T', ' ');
-      const updatedAt = createdAt;
-
-      this.created_at = createdAt; // Assign value to created_at property
-      this.updated_at = updatedAt; // Assign value to updated_at property
-     
-      const values = [
-        this.type,
-        this.name,
-        this.image,
-        this.description,
-        this.color,
-        this.category_id,
-        this.owner,
-        this.current_driver,
-        this.date_manufactured,
-        this.quality,
-        this.seat_capacity,
-        this.company_number,
-        this.plate_number,
-        this.other_features,
-        this.availability,
-        this.status,
-        this.created_at,
-        this.updated_at,
-      ];
-  
-      db.query(q, values, (err, data) => {
-        if (err) {
-          console.error(err);
-          return;
-        }
-        console.log('Transport Mode Created Successfully');
-        
-      });
-    }
-}
-
-
 class TransportMode {
     constructor() {
         this.type = '';
@@ -109,6 +21,62 @@ class TransportMode {
         this.created_at = '';
         this.updated_at = '';
     }
+
+  // Check if a record with the desired values already exists
+  async isUnique(companyNumber, plateNumber) {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT company_number, plate_number
+        FROM transport_modes
+        WHERE company_number = ? OR plate_number = ?
+      `;
+
+      const values = [
+        companyNumber,
+        plateNumber,
+        // Add other values for the corresponding columns
+      ];
+
+      // db.query(query, values, (err, result) => {
+        
+      //   if (err) {
+      //     reject(err); // Reject the promise with the error
+      //     return;
+      //   }
+
+      //   const count = result[0].count;
+      //   const isUnique = count === 0;
+
+      //   resolve(isUnique); // Resolve the promise with the uniqueness check result
+      // });
+      db.query(query, values, (error, results) => {
+        if (error) {
+          reject(error);
+          return;
+        } else {
+          const affectedColumns = [];
+          if (results[0]) {
+            //reset array, to be sure its empty
+            while(results[0].length > 0) {
+              affectedColumns.pop();
+            }
+
+            //loop results & push now empty affectedColumns array
+            for (const row of results) {
+              if (row.company_number === companyNumber) {
+                affectedColumns.push('company_number');
+              }
+              if (row.plate_number === plateNumber) {
+                affectedColumns.push('plate_number');
+              }
+            }
+          }
+          resolve(affectedColumns); // Resolve the promise with the uniqueness check result
+        }
+        
+      });
+    });
+  }
   
     //save new object
     save() {
@@ -269,6 +237,152 @@ class TransportMode {
         });
       });
     }
+
+    //update class
+    update2() {
+      return new Promise((resolve, reject) => {
+        const query = `
+          UPDATE transport_modes 
+          SET type = ?,
+              name = ?,
+              image = ?,
+              description = ?,
+              color = ?,
+              category_id = ?,
+              owner = ?,
+              current_driver = ?,
+              date_manufactured = ?,
+              quality = ?,
+              seat_capacity = ?,
+              company_number = ?,
+              plate_number = ?,
+              other_features = ?,
+              availability = ?,
+              status = ?,
+              created_at = ?,
+              updated_at = ?
+          WHERE id = ?;
+        `;
+        const now = new Date();
+        const createdAt = now.toISOString().slice(0, 19).replace('T', ' ');
+        const updatedAt = createdAt;
+        this.updated_at = updatedAt; // Assign value to updated_at property
+
+        const values = [
+          this.type,
+          this.name,
+          this.image,
+          this.description,
+          this.color,
+          this.category_id,
+          this.owner,
+          this.current_driver,
+          this.date_manufactured,
+          this.quality,
+          this.seat_capacity,
+          this.company_number,
+          this.plate_number,
+          this.other_features,
+          this.availability,
+          this.status,
+          this.created_at,
+          this.updated_at,
+          this.id,
+      ];
+
+        // db.query(query, values, (err, data) => {
+        //   if (err && err.code === "ER_DUP_ENTRY") {
+        //     resolve(); // Resolve the promise even if duplicate entry error occurs
+        //     //return;
+        //   }
+          
+        //   if (err) {
+        //     reject(err); // Reject the promise with the error
+        //     //return;
+        //   }
+        //   resolve(); // Resolve the promise
+        //   console.log('final resolve');
+        // });
+        db.query(query, values, (err, data) => {
+          if (err && err.code === "ER_DUP_ENTRY") {
+            resolve(); // Resolve the promise even if duplicate entry error occurs
+          } else if (err && err.code !== "ER_DUP_ENTRY") {
+            console.log('final reject');
+            reject(err); // Reject the promise with the error
+          } else {
+            console.log('final resolve');
+            resolve(); // Resolve the promise
+          }
+        });
+      });
+    }
+
+    update() {
+      return new Promise((resolve, reject) => {
+        const query = `
+          INSERT INTO transport_modes (
+            id, type, name, image, description, color, category_id, owner, current_driver,
+            date_manufactured, quality, seat_capacity, company_number, plate_number,
+            other_features, availability, status, created_at, updated_at
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON DUPLICATE KEY UPDATE
+            type = VALUES(type),
+            name = VALUES(name),
+            image = VALUES(image),
+            description = VALUES(description),
+            color = VALUES(color),
+            category_id = VALUES(category_id),
+            owner = VALUES(owner),
+            current_driver = VALUES(current_driver),
+            date_manufactured = VALUES(date_manufactured),
+            quality = VALUES(quality),
+            seat_capacity = VALUES(seat_capacity),
+            company_number = VALUES(company_number),
+            plate_number = VALUES(plate_number),
+            other_features = VALUES(other_features),
+            availability = VALUES(availability),
+            status = VALUES(status),
+            created_at = VALUES(created_at),
+            updated_at = VALUES(updated_at);
+        `;
+        const now = new Date();
+        const createdAt = now.toISOString().slice(0, 19).replace('T', ' ');
+        const updatedAt = createdAt;
+        this.updated_at = updatedAt; // Assign value to updated_at property
+    
+        const values = [
+          this.id,
+          this.type,
+          this.name,
+          this.image,
+          this.description,
+          this.color,
+          this.category_id,
+          this.owner,
+          this.current_driver,
+          this.date_manufactured,
+          this.quality,
+          this.seat_capacity,
+          this.company_number,
+          this.plate_number,
+          this.other_features,
+          this.availability,
+          this.status,
+          this.created_at,
+          this.updated_at,
+        ];
+    
+        db.query(query, values, (err, data) => {
+          if (err) {
+            reject(err); // Reject the promise with the error
+          } else {
+            resolve(); // Resolve the promise
+          }
+        });
+      });
+    };
+    
 
     //delete object
     delete() {
