@@ -1,4 +1,5 @@
 import express from "express"
+import dotenv from "dotenv";
 import cors from "cors"
 import bodyParser from "body-parser"
 import cookieParser from "cookie-parser"
@@ -8,6 +9,7 @@ import authRoutes from "./routes/auth.js"
 import transportModeRoutes from "./routes/transportModes.js"
 
 const app = express();
+dotenv.config();
 
 app.use(express.json()) //so dat we can send data to our db
 //app.use(cookieParser())

@@ -20,11 +20,12 @@ class User {
             email,
             password,
             profile_picture,
+            isAdmin,
             status,
             created_at,
             updated_at
           )
-          VALUES (?, ?, ?, ?, ?, ?, ?)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `;
         const now = new Date();
         const createdAt = now.toISOString().slice(0, 19).replace('T', ' ');
@@ -37,6 +38,7 @@ class User {
             this.email,
             this.password,
             this.profile_picture,
+            this.isAdmin,
             this.status,
             this.created_at,
             this.updated_at,

@@ -51,6 +51,7 @@ export const register = async (req,res)=>{
         const salt = bcrypt.genSaltSync(10);
         const hash = bcrypt.hashSync(req.body.password, salt)
         user.password = hash;
+        user.isAdmin = req.body.isAdmin === 'true' ? true : false;
         user.status = 'active';
         
         await user.save();
@@ -74,11 +75,16 @@ export const login = async (req,res)=>{
         if(!isPasswordCorrect) return res.status(400).json({'success':false, 'message':'Incorrect email or password'});
 
         //jwt, store in cookie
-        const token = jwt.sign({ id: user.id }, "jwtKey");
+        //const token = jwt.sign({ id: user.id }, "jwtKey");
+        const token = jwt.sign(
+            { id: user.id, isAdmin: user.isAdmin },
+            process.env.JWT_KEY
+        );
+
         const { password, ...other } = user;
         other.token = token;
         //console.log(other)
-        res.cookie("access_token", token, {
+        res.cookie("jwt_token", token, {
             httpOnly: true,
         })
         .status(200)

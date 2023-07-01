@@ -113,7 +113,7 @@ class TransportMode {
     //save new object
     save() {
       return new Promise((resolve, reject) => {
-        const q = `
+        const query = `
           INSERT INTO transport_modes(
             type,
             name,
@@ -139,6 +139,8 @@ class TransportMode {
         const now = new Date();
         const createdAt = now.toISOString().slice(0, 19).replace('T', ' ');
         const updatedAt = createdAt;
+        this.created_at = createdAt; // Assign value to created_at property
+        this.updated_at = updatedAt; // Assign value to updated_at property
   
         const values = [
             this.type,
@@ -161,7 +163,7 @@ class TransportMode {
             this.updated_at,
         ];
   
-        db.query(q, values, (err, data) => {
+        db.query(query, values, (err, data) => {
           if (err) {
             reject(err); // Reject the promise with the error
             return;
@@ -224,6 +226,65 @@ class TransportMode {
             resolve(transportMode);
           });
         });
+    }
+
+    //findByIdOrFail
+    static findByIdOrFail(id) {
+      return new Promise((resolve, reject) => {
+        const query = 'SELECT * FROM transport_modes WHERE id = ?';
+    
+        const values = [id];
+        db.query(query, values, (err, rows) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+  
+          if (rows.length === 0) {
+            reject(new Error('Transport mode not found'));
+            return;
+          }
+  
+          const transportMode = new TransportMode();
+          // Map the properties from the database rows to the transportMode object
+          transportMode.id = rows[0].id;
+          transportMode.type = rows[0].type;
+          transportMode.name = rows[0].name;
+          transportMode.image = rows[0].image;
+          transportMode.description = rows[0].description;
+          transportMode.color = rows[0].color;
+          transportMode.category_id = rows[0].category_id;
+          transportMode.owner = rows[0].owner;
+          transportMode.current_driver = rows[0].current_driver;
+          transportMode.date_manufactured = rows[0].date_manufactured;
+          transportMode.quality = rows[0].quality;
+          transportMode.seat_capacity = rows[0].seat_capacity;
+          transportMode.company_number = rows[0].company_number;
+          transportMode.plate_number = rows[0].plate_number;
+          transportMode.other_features = rows[0].other_features;
+          transportMode.availability = rows[0].availability;
+          transportMode.status = rows[0].status;
+  
+          resolve(transportMode);
+        });
+      });
+    }
+
+    //delete object
+    delete() {
+      return new Promise((resolve, reject) => {
+        const query = 'DELETE FROM transport_modes WHERE id = ?';
+        
+        const values = [this.id];
+  
+        db.query(query, values, (err, data) => {
+          if (err) {
+            reject(err); // Reject the promise with the error
+            return;
+          }
+          resolve(); // Resolve the promise
+        });
+      });
     }
 }
   

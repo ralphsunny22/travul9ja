@@ -80,6 +80,7 @@ export const addTransport = (req,res)=>{
 }
 
 export const addTransportMode = async (req,res)=>{
+    
   try {
     const transportMode = new TransportMode();
     transportMode.type = req.body.type;
@@ -109,11 +110,16 @@ export const addTransportMode = async (req,res)=>{
    
 }
 
-export const deleteTransportMode = (req,res)=>{
-    //const token = req.cookies.access_token
-    const token = req.header('Authorization').replace('Bearer ', '');
+export const deleteTransportMode = async (req,res)=>{
     
-    if(!token) return res.status(500).json("Unauthorised Process")
+    try {            
+        const id = req.params.id;
+        const transportMode = await TransportMode.findByIdOrFail(id);
+        await transportMode.delete();
+        return res.status(200).json({'success':true, 'message':'Transport mode removed successfully'});
+    } catch (error) {
+        return res.status(500).json({'success':false, 'message':error.message})
+    }
 
     jwt.verify(token, "jwtKey", (err, userInfo)=>{
         if(err) return res.status(403).json("Invalid Token")
