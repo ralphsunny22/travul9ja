@@ -49,17 +49,19 @@ export const createSchema = (req,res)=>{
                     password VARCHAR(255) NULL,
                     isAdmin BOOLEAN NULL DEFAULT false,
                     profile_picture VARCHAR(255) NULL,
+                    created_by INT NULL,
                     status VARCHAR(45) NOT NULL DEFAULT 'active',
                     created_at DATETIME NULL,
                     updated_at DATETIME NULL,
                     UNIQUE INDEX id_UNIQUE (id ASC),
-                    PRIMARY KEY (id),
-                    UNIQUE INDEX email_UNIQUE (email ASC)
+                    PRIMARY KEY (id)
                 );
                 CREATE TABLE transport_modes (
                     id INT NOT NULL AUTO_INCREMENT,
+                    unique_key LONGTEXT NULL,
                     type VARCHAR(255) NOT NULL,
                     name VARCHAR(255) NOT NULL,
+                    slug LONGTEXT NULL,
                     image VARCHAR(255) NULL,
                     description LONGTEXT NULL,
                     color VARCHAR(255) NULL,
@@ -73,6 +75,7 @@ export const createSchema = (req,res)=>{
                     plate_number VARCHAR(255) NULL,
                     other_features LONGTEXT NULL,
                     availability VARCHAR(45) NULL DEFAULT 'available',
+                    created_by INT NULL,
                     status VARCHAR(45) NOT NULL DEFAULT 'active',
                     created_at DATETIME NULL,
                     updated_at DATETIME NULL,

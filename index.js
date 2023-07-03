@@ -7,6 +7,7 @@ import multer from "multer"
 import createSchema from "./routes/schema.js"
 import authRoutes from "./routes/auth.js"
 import transportModeRoutes from "./routes/transportModes.js"
+import userRoutes from "./routes/users.js"
 
 const app = express();
 dotenv.config();
@@ -26,6 +27,7 @@ app.use(cors());
 app.use("/api/db", createSchema)
 app.use("/api/auth", authRoutes)
 app.use("/api/transport-mode", transportModeRoutes)
+app.use("/api/user", userRoutes)
 
 const port = 5000;
 app.listen(port, ()=>{

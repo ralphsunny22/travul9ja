@@ -6,34 +6,7 @@ import errors from "../errors.js"
 
 const {getErrorMessage} = errors;
 
-//unused
-export const register2 = (req,res)=>{
-    //check user exist
-    const q = "SELECT * FROM users WHERE email = ? OR name = ?"
-    
-    db.query(q, [req.body.email, req.body.name], (err,data)=>{
-        if(err) return res.json(err)
-        if(data.length) return res.status(409).json("User already exists");
-        
-        //hash pass, then create new user
-        const salt = bcrypt.genSaltSync(10);
-        const hash = bcrypt.hashSync(req.body.password, salt)
-        
-        //insert query
-        const q = "INSERT INTO users(`name`,`email`,`password`) VALUES (?)"
-        const values = [
-            req.body.name,
-            req.body.email,
-            hash //as hashed password
-        ]
-        db.query(q, [values], (err,data)=>{
-            if(err) return res.json(err)
-            return res.status(200).json("User registered successfuly")
-        })
-
-    })
-}
-
+//register
 export const register = async (req,res)=>{
     
     try {
@@ -55,21 +28,22 @@ export const register = async (req,res)=>{
         user.status = 'active';
         
         await user.save();
-        return res.status(200).json("User Registered Successfully")  
+        return res.status(200).json({success:true, 'message':'User Registered Successfully', 'data':user})  
     } catch (error) {
         // return res.status(500).json("Something Went Wrong")
         return res.status(500).json(error.message)
         //return res.status(200).json({ error });
     }
      
-}
+};
 
+//login
 export const login = async (req,res)=>{
     
     try {
         const email = req.body.email;
         const user = await User.findByEmailOrFail(email);
-
+        
         //check password
         const isPasswordCorrect = bcrypt.compareSync(req.body.password, user.password)
         if(!isPasswordCorrect) return res.status(400).json({'success':false, 'message':'Incorrect email or password'});
@@ -96,9 +70,35 @@ export const login = async (req,res)=>{
     
 };
 
+//logout
 export const logout = (req,res)=>{
     res.clearCookie("access_token", {
         sameSite:"none",
         secure:true
     }).status(200).json("User logged Out")
-}
+};
+
+//single auth user
+export const singleAuthUser = async (req, res, next) => {
+    try {
+      const id = req.params.id;
+      const user = await User.findByIdOrFail(id);
+      
+      return res.status(200).json({'success':true, 'data':user});
+    } catch (error) {
+      return res.status(500).json(error);
+      //next(error);
+    }
+};
+
+//single any user
+export const singleAnyUser = async (req, res) => {
+    try {
+      const id = req.params.id;
+      const user = await User.findByIdOrFail(id);
+      
+      return res.status(200).json({'success':true, 'data':user});
+    } catch (error) {
+      return res.status(500).json(error.message);
+    }
+};
