@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import User from "../models/User.js"
 import errors from "../errors.js"
+import { createUniqueKey } from "../utils/createUniqueKey.js"
 
 const {getErrorMessage} = errors;
 
@@ -16,7 +17,14 @@ export const register = async (req,res)=>{
             return res.status(400).json({ error: 'User Already Exists' });
         }
 
+        const table_name = 'transport_modes';
+        const table_column_unique = 'unique_key';
+
+        //check unique_key
+        const uniqueKey = await createUniqueKey(table_name, table_column_unique);
+
         const user = new User();
+        user.unique_key = uniqueKey;
         user.name = req.body.name;
         user.email = req.body.email;
 
@@ -24,7 +32,9 @@ export const register = async (req,res)=>{
         const salt = bcrypt.genSaltSync(10);
         const hash = bcrypt.hashSync(req.body.password, salt)
         user.password = hash;
-        user.isAdmin = req.body.isAdmin === 'true' ? true : false;
+        user.isAdmin = req.body.isAdmin == 'true' ? true : false;
+        user.profile_picture = req.body.profile_picture ? req.body.profile_picture : null;
+        user.created_by = null;
         user.status = 'active';
         
         await user.save();
@@ -72,17 +82,26 @@ export const login = async (req,res)=>{
 
 //logout
 export const logout = (req,res)=>{
-    res.clearCookie("access_token", {
-        sameSite:"none",
-        secure:true
-    }).status(200).json("User logged Out")
+  //res.clearCookie("access_token", { sameSite:"none", secure:true }).status(200).json("User logged Out")
+
+  // Clear the Authorization header
+  //res.setHeader('Authorization', '');
+
+  if (req.header('Authorization')) {
+    // Or remove the Authorization header completely
+    res.removeHeader('Authorization');
+  }
+  
+  return res.status(200).json({'success':true, 'message':'Logged Out Successfully'})
+  
 };
 
 //single auth user
 export const singleAuthUser = async (req, res, next) => {
     try {
-      const id = req.params.id;
-      const user = await User.findByIdOrFail(id);
+    
+      const authUser = req.user;
+      const user = await User.findByIdOrFail(authUser.id);
       
       return res.status(200).json({'success':true, 'data':user});
     } catch (error) {

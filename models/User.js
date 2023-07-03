@@ -2,12 +2,14 @@ import { db } from "../db.js";
 
 class User {
     constructor() {
+        this.unique_key = '';
         this.name = '';
         this.email = '';
         this.password = '';
         this.profile_picture = '';
         this.status = '';
         this.isAdmin = '';
+        this.created_by = '';
         this.created_at = '';
         this.updated_at = '';
     }
@@ -56,16 +58,18 @@ class User {
       return new Promise((resolve, reject) => {
         const query = `
           INSERT INTO users(
+            unique_key,
             name,
             email,
             password,
             profile_picture,
             isAdmin,
             status,
+            created_by,
             created_at,
             updated_at
           )
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
         const now = new Date();
         const createdAt = now.toISOString().slice(0, 19).replace('T', ' ');
@@ -74,12 +78,14 @@ class User {
         this.updated_at = updatedAt; // Assign value to updated_at property
   
         const values = [
+            this.unique_key,
             this.name,
             this.email,
             this.password,
             this.profile_picture,
             this.isAdmin,
             this.status,
+            this.created_by,
             this.created_at,
             this.updated_at,
         ];
@@ -89,7 +95,7 @@ class User {
             reject(err); // Reject the promise with the error
             return;
           }
-          resolve(); // Resolve the promise
+          resolve(data); // Resolve the promise
         });
       });
     }
@@ -115,12 +121,14 @@ class User {
             const user = new User();
             // Map the properties from the database rows to the user object
             user.id = rows[0].id;
+            user.unique_key = rows[0].unique_key;
             user.name = rows[0].name;
             user.email = rows[0].email;
-            user.password = rows[0].password;
+            //user.password = rows[0].password;
             user.profile_picture = rows[0].profile_picture;
             user.status = rows[0].status;
             user.isAdmin = rows[0].isAdmin;
+            user.created_by = rows[0].created_by;
             user.created_at = rows[0].created_at;
             user.updated_at = rows[0].updated_at;
     
@@ -147,14 +155,16 @@ class User {
           }
   
           const user = new User();
-          // Map the properties from the database rows to the user object
+          // Map the properties from the database rows to the user object. What you want to show clients
           user.id = rows[0].id;
+          user.unique_key = rows[0].unique_key;
           user.name = rows[0].name;
           user.email = rows[0].email;
-          user.password = rows[0].password;
+          //user.password = rows[0].password;
           user.profile_picture = rows[0].profile_picture;
           user.status = rows[0].status;
           user.isAdmin = rows[0].isAdmin;
+          user.created_by = rows[0].created_by;
           user.created_at = rows[0].created_at;
           user.updated_at = rows[0].updated_at;
   
@@ -236,10 +246,9 @@ class User {
     update() {
       return new Promise((resolve, reject) => {
         const query = `
-        UPDATE transport_modes SET
+        UPDATE users SET
             name = ?,
             email = ?,
-            password = ?,
             profile_picture = ?,
             status = ?,
             isAdmin = ?,
@@ -255,7 +264,6 @@ class User {
         const values = [
           this.name,
           this.email,
-          this.password,
           this.profile_picture,
           this.status,
           this.isAdmin,
@@ -273,6 +281,24 @@ class User {
         });
       });
     };
+
+    //delete object
+  delete() {
+    return new Promise((resolve, reject) => {
+      const query = 'DELETE FROM users WHERE id = ?';
+      
+      const values = [this.id];
+
+      db.query(query, values, (err, data) => {
+        if (err) {
+          reject(err); // Reject the promise with the error
+          return;
+        }
+        resolve(); // Resolve the promise
+      });
+    });
+  }
+
 }
 
 export default User;

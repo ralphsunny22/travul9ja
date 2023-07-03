@@ -2,15 +2,16 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs"
 
 //update
-export const updateUser = async (req,res)=>{
+export const updateUser = async (req,res) => {
     
     try {
-
+        const authUser = req.user;
+  
         //get id param       
         const id = req.params.id;
+        // return res.status(500).json(id)
         //grab object from database
         const user = await User.findByIdOrFail(id);
-
         const email = req.body.email ? req.body.email : '' ;
         
         //if oldValue not equal newValue, check unique records, before new records can be allowed
@@ -23,23 +24,39 @@ export const updateUser = async (req,res)=>{
           if(unique_affectedColumns.length > 0) return res.status(400).json({'success':false, 'Duplicate entry found in columns':unique_affectedColumns});
         }
         
+        user.unique_key = user.unique_key;
         user.name = req.body.name;
         user.email = req.body.email;
 
-        //hash pass, then create new user
-        const salt = bcrypt.genSaltSync(10);
-        const hash = bcrypt.hashSync(req.body.password, salt)
-        user.password = hash;
+        user.profile_picture = req.body.profile_picture ? req.body.profile_picture  : user.profile_picture;
         user.isAdmin = req.body.isAdmin == 'true' ? true : false;
-        user.status = 'active';
+        user.status = req.body.status ? req.body.status  : user.status;
+        user.created_by = user.created_by;
         user.id = id;
-        await user.update();
         
         //return res.status(200).json(user) 
         await user.update();
-        return res.status(200).json("User Updated Successfuly")  
+        return res.status(200).json({success:true, 'message':'User Updated Successfully', 'data':user})   
       } catch (error) {
         return res.status(500).json(error.message)
       }
+
+}
+
+//delete
+export const deleteUser = async (req,res) => {
+    
+  try {     
+      //get id param       
+      const id = req.params.id;
+      //grab object from database
+      const user = await User.findByIdOrFail(id);
+
+      //delete object
+      await user.delete();
+      return res.status(200).json({'success':true, 'message':'User Removed Successfully'});
+  } catch (error) {
+    return res.status(500).json({'success':false, 'message':error.message})
+  }
 
 }

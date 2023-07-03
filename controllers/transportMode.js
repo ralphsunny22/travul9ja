@@ -11,7 +11,7 @@ const {getErrorMessage} = errors;
 //////////////////////////////////////////////////////////
 
 //getAll
-export const getAllTransportModes = async (req,res)=>{
+export const getAllTransportModes = async (req,res) => {
 
     try {
         const transportModes = await TransportMode.all();
@@ -35,20 +35,24 @@ export const getAllTransportModes = async (req,res)=>{
 
 //single object
 export const getSingleTransportMode = async (req, res) => {
-    try {
-      const id = req.params.id;
-      const transportMode = await TransportMode.findByIdOrFail(id);
-      
-      return res.status(200).json({'success':true, 'data':transportMode}) 
-    } catch (error) {
-      return res.status(500).json(error.message);
-    }
+
+  try {
+    const id = req.params.id;
+    const transportMode = await TransportMode.findByIdOrFail(id);
+    
+    return res.status(200).json({'success':true, 'data':transportMode}) 
+  } catch (error) {
+    return res.status(500).json(error.message);
+  }
+  
 };
   
 //add new
-export const addTransportMode = async (req,res, next)=>{
+export const addTransportMode = async (req,res, next) => {
     
   try {
+    const authUser = req.user.id; //coming from 'verifyAdmin' middleware
+    
     const transportMode = new TransportMode();
     const company_number = req.body.company_number ? req.body.company_number : '' ;
     const plate_number = req.body.plate_number ? req.body.plate_number : '' ;
@@ -92,7 +96,7 @@ export const addTransportMode = async (req,res, next)=>{
     transportMode.plate_number = req.body.plate_number;
     transportMode.other_features = req.body.other_features;
     transportMode.availability = 'available';
-    transportMode.created_by = req.body.created_by;
+    transportMode.created_by = authUser;
     transportMode.status = 'active';
 
     await transportMode.save();
@@ -107,7 +111,7 @@ export const addTransportMode = async (req,res, next)=>{
 }
 
 //update
-export const updateTransportMode = async (req,res)=>{
+export const updateTransportMode = async (req,res) => {
     
   try {
 
@@ -167,25 +171,25 @@ export const updateTransportMode = async (req,res)=>{
       await transportMode.update();
       return res.status(200).json({'success':true, 'message':'Transport Mode Updated Successfully', 'data':transportMode})  
   } catch (error) {
-      return res.status(500).json(error.message)
+    return res.status(500).json(error.message)
   }
 
 }
 
 //delete
-export const deleteTransportMode = async (req,res)=>{
+export const deleteTransportMode = async (req,res) => {
     
-    try {     
-        //get id param       
-        const id = req.params.id;
-        //grab object from database
-        const transportMode = await TransportMode.findByIdOrFail(id);
+  try {     
+      //get id param       
+      const id = req.params.id;
+      //grab object from database
+      const transportMode = await TransportMode.findByIdOrFail(id);
 
-        //delete object
-        await transportMode.delete();
-        return res.status(200).json({'success':true, 'message':'Transport mode removed successfully'});
-    } catch (error) {
-        return res.status(500).json({'success':false, 'message':error.message})
-    }
+      //delete object
+      await transportMode.delete();
+      return res.status(200).json({'success':true, 'message':'Transport mode removed successfully'});
+  } catch (error) {
+    return res.status(500).json({'success':false, 'message':error.message})
+  }
 
 }
